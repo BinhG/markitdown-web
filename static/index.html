@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarkItDown Web — Universal Converter</title>
+    <meta name="description" content="Convert any file, document, or URL into pristine Markdown using Microsoft's MarkItDown.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f1115;
+            --surface-color: #1a1d24;
+            --surface-hover: #222630;
+            --border-color: #2e3440;
+            --text-primary: #f8f9fa;
+            --text-secondary: #a0a6b1;
+            --accent-primary: #6366f1;
+            --accent-hover: #4f46e5;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(180deg, rgba(26,29,36,0.8) 0%, rgba(15,17,21,1) 100%);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #fff 0%, #a0a6b1 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p { color: var(--text-secondary); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+        main {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+
+        .panel {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+        }
+
+        h2 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+
+        .tabs {
+            display: flex;
+            background-color: rgba(0,0,0,0.2);
+            border-radius: var(--radius-md);
+            padding: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background-color: var(--surface-hover);
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        .tab-content { display: none; flex-direction: column; gap: 1rem; }
+        .tab-content.active { display: flex; }
+
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: rgba(0,0,0,0.1);
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--accent-primary);
+            background-color: rgba(99,102,241,0.05);
+        }
+
+        .drop-zone-icon { font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-secondary); }
+        .drop-zone-text { color: var(--text-secondary); margin-bottom: 1rem; }
+        .drop-zone-subtext { font-size: 0.85rem; color: #6b7280; }
+        input[type="file"] { display: none; }
+
+        input[type="url"], textarea {
+            width: 100%;
+            padding: 1rem;
+            background-color: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        textarea { min-height: 200px; resize: vertical; }
+
+        input[type="url"]:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        button.submit-btn {
+            background-color: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button.submit-btn:hover { background-color: var(--accent-hover); transform: translateY(-1px); }
+        button.submit-btn:active { transform: translateY(0); }
+        button.submit-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .output-stats { font-size: 0.85rem; color: var(--text-secondary); }
+        .output-actions { display: flex; gap: 0.5rem; }
+
+        .copy-btn {
+            background: var(--surface-hover);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { background: var(--border-color); }
+
+        .download-btn {
+            background: rgba(99,102,241,0.15);
+            border: 1px solid rgba(99,102,241,0.4);
+            color: var(--accent-primary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .download-btn:hover { background: rgba(99,102,241,0.25); }
+
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 400px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background-color: #0d0f12;
+        }
+
+        pre { margin: 0; height: 100%; overflow: auto; }
+        code { font-family: 'Fira Code', monospace; font-size: 0.9rem; line-height: 1.5; padding: 1.5rem; display: block; color: #d8dee9; white-space: pre-wrap; }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            background: var(--surface-hover);
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.error { border-left-color: var(--error-color); }
+        .toast.success { border-left-color: var(--success-color); }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+        footer a { color: var(--accent-primary); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>MarkItDown</h1>
+        <p>Convert Documents, Media, and Web Pages to pristine Markdown effortlessly.</p>
+    </header>
+
+    <main>
+        <!-- Left Panel: Input -->
+        <div class="panel">
+            <h2>Input Source</h2>
+            
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="file" id="tab-btn-file">File Upload</button>
+                <button class="tab-btn" data-tab="url" id="tab-btn-url">URL</button>
+                <button class="tab-btn" data-tab="text" id="tab-btn-text">Raw Text</button>
+            </div>
+
+            <!-- File Tab -->
+            <div class="tab-content active" id="tab-file">
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-icon">&#128196;</div>
+                    <div class="drop-zone-text">Drag &amp; drop your file here, or click to browse</div>
+                    <div class="drop-zone-subtext">Supports PDF, DOCX, XLSX, HTML, Images, Audio, ZIP &mdash; up to 50MB</div>
+                    <input type="file" id="fileInput">
+                </div>
+                <div id="selectedFileInfo" style="display: none; color: var(--accent-primary); font-weight: 500; text-align: center;"></div>
+                <button class="submit-btn" id="btnFile" disabled>
+                    <span class="btn-text">Convert File</span>
+                    <div class="spinner"></div>
+                </button>
+            </div>
+
+            <!-- URL Tab -->
+            <div class="tab-content" id="tab-url">
+                <input type="url" id="urlInput" placeholder="https://example.com/article" autocomplete="off">
+                <button class="submit-btn" id="btnUrl">
+                    <span class="btn-text">Extract Markdown</span>
+                    <div class="spinner"></div>
+                </button>
+            </div>
+
+            <!-- Text Tab -->
+            <div class="tab-content" id="tab-text">
+                <textarea id="textInput" placeholder="Paste raw HTML or plain text here..."></textarea>
+                <div style="display: flex; gap: 1rem;">
+                    <label style="color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="radio" name="textFormat" value="html" checked> HTML
+                    </label>
+                    <label style="color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="radio" name="textFormat" value="text"> Plain Text
+                    </label>
+                </div>
+                <button class="submit-btn" id="btnText">
+                    <span class="btn-text">Convert Text</span>
+                    <div class="spinner"></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Output -->
+        <div class="panel">
+            <div class="output-header">
+                <h2>Markdown Output</h2>
+                <div class="output-actions">
+                    <button class="download-btn" id="downloadBtn">&#8595; Download .md</button>
+                    <button class="copy-btn" id="copyBtn">Copy</button>
+                </div>
+            </div>
+            <div class="output-stats" id="outputStats">0 lines &bull; 0 characters</div>
+            
+            <div class="editor-wrapper">
+                <pre><code id="outputCode">Markdown will appear here...</code></pre>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        Powered by <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">Microsoft MarkItDown</a>
+        &mdash; <a href="https://github.com/BinhG/markitdown-web" target="_blank" rel="noopener">Source on GitHub</a>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Tab Switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Toast
+        const toast = document.getElementById('toast');
+        let toastTimeout;
+        function showToast(message, type = 'success') {
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Output
+        const outputCode = document.getElementById('outputCode');
+        const outputStats = document.getElementById('outputStats');
+        let lastMarkdown = '';
+
+        function setOutput(markdown, lines, chars) {
+            if (!markdown) markdown = 'No content extracted.';
+            lastMarkdown = markdown;
+            outputCode.textContent = markdown;
+            outputStats.textContent = (lines ?? markdown.split('\n').length) + ' lines \u2022 ' + (chars ?? markdown.length).toLocaleString() + ' characters';
+        }
+
+        // Copy
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const text = outputCode.textContent;
+            if (text && text !== 'Markdown will appear here...') {
+                navigator.clipboard.writeText(text)
+                    .then(() => showToast('Copied to clipboard!'))
+                    .catch(() => showToast('Failed to copy', 'error'));
+            }
+        });
+
+        // Download
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            if (!lastMarkdown || lastMarkdown === 'Markdown will appear here...') return;
+            const blob = new Blob([lastMarkdown], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'converted.md'; a.click();
+            URL.revokeObjectURL(url);
+            showToast('Downloaded!');
+        });
+
+        // Loading
+        function setLoading(btnId, isLoading) {
+            const btn = document.getElementById(btnId);
+            btn.disabled = isLoading;
+            btn.querySelector('.btn-text').style.opacity = isLoading ? '0' : '1';
+            btn.querySelector('.spinner').style.display = isLoading ? 'block' : 'none';
+        }
+
+        // File
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        let currentFile = null;
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault(); dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', e => { if (e.target.files.length) handleFileSelect(e.target.files[0]); });
+
+        function handleFileSelect(file) {
+            currentFile = file;
+            const info = document.getElementById('selectedFileInfo');
+            info.style.display = 'block';
+            info.textContent = 'Selected: ' + file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+            document.getElementById('btnFile').disabled = false;
+        }
+
+        const API = '/api/convert';
+
+        // File Convert
+        document.getElementById('btnFile').addEventListener('click', async () => {
+            if (!currentFile) return;
+            setLoading('btnFile', true);
+            const fd = new FormData();
+            fd.append('file', currentFile);
+            try {
+                const r = await fetch(API + '/file', { method: 'POST', body: fd });
+                const d = await r.json();
+                if (r.ok) { setOutput(d.markdown, d.line_count, d.char_count); showToast('File converted!'); }
+                else showToast(d.error || 'Conversion failed', 'error');
+            } catch (e) { showToast(e.message, 'error'); }
+            finally { setLoading('btnFile', false); }
+        });
+
+        // URL Convert
+        document.getElementById('btnUrl').addEventListener('click', async () => {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) return;
+            setLoading('btnUrl', true);
+            try {
+                const r = await fetch(API + '/url', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+                const d = await r.json();
+                if (r.ok) { setOutput(d.markdown, d.line_count, d.char_count); showToast('URL converted!'); }
+                else showToast(d.error || 'Conversion failed', 'error');
+            } catch (e) { showToast(e.message, 'error'); }
+            finally { setLoading('btnUrl', false); }
+        });
+
+        // Text Convert
+        document.getElementById('btnText').addEventListener('click', async () => {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) return;
+            setLoading('btnText', true);
+            const format = document.querySelector('input[name="textFormat"]:checked').value;
+            try {
+                const r = await fetch(API + '/text', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, format }) });
+                const d = await r.json();
+                if (r.ok) { setOutput(d.markdown, d.line_count, d.char_count); showToast('Text converted!'); }
+                else showToast(d.error || 'Conversion failed', 'error');
+            } catch (e) { showToast(e.message, 'error'); }
+            finally { setLoading('btnText', false); }
+        });
+    </script>
+</body>
+</html>
