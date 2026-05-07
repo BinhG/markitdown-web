@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  markitdown-web:
+    build: .
+    image: markitdown-web:latest
+    container_name: markitdown-web
+    restart: unless-stopped
+    ports:
+      - "5050:5050"
+    environment:
+      - PORT=5050
+      - FLASK_DEBUG=0
+    volumes:
+      - markitdown_tmp:/tmp/markitdown_uploads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.markitdown.rule=Host(`markitdown.hmuproxy.cloud`)"
+      - "traefik.http.routers.markitdown.entrypoints=websecure"
+      - "traefik.http.routers.markitdown.tls.certresolver=letsencrypt"
+      - "traefik.http.services.markitdown.loadbalancer.server.port=5050"
+
+volumes:
+  markitdown_tmp:
