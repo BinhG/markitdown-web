@@ -23,7 +23,11 @@
             --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -45,243 +49,292 @@
         h1 {
             font-size: 2.5rem;
             font-weight: 700;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #fff 0%, #a0a6b1 100%);
+            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
             -webkit-background-clip: text;
-            background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 0.5rem;
         }
 
-        header p { color: var(--text-secondary); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
 
         main {
             flex: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 2rem;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
         }
 
-        @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) {
+            main { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8rem; }
+        }
 
         .panel {
-            background-color: var(--surface-color);
+            background: var(--surface-color);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            gap: 1rem;
+            min-height: 600px;
         }
 
-        h2 { font-size: 1.25rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
-
+        /* Tabs */
         .tabs {
             display: flex;
-            background-color: rgba(0,0,0,0.2);
-            border-radius: var(--radius-md);
-            padding: 0.25rem;
-            margin-bottom: 1rem;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
         }
 
         .tab-btn {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-family: inherit;
-            font-weight: 500;
-            cursor: pointer;
+            padding: 0.5rem 1.25rem;
             border-radius: 8px;
-            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
         }
 
         .tab-btn.active {
-            background-color: var(--surface-hover);
-            color: var(--text-primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-glow);
         }
 
-        .tab-content { display: none; flex-direction: column; gap: 1rem; }
+        .tab-content { display: none; flex-direction: column; gap: 1rem; flex: 1; }
         .tab-content.active { display: flex; }
 
+        /* Drop Zone */
         .drop-zone {
             border: 2px dashed var(--border-color);
             border-radius: var(--radius-md);
             padding: 3rem 2rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
-            background-color: rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            flex: 1;
         }
 
         .drop-zone:hover, .drop-zone.dragover {
             border-color: var(--accent-primary);
-            background-color: rgba(99,102,241,0.05);
+            background: rgba(99, 102, 241, 0.05);
         }
 
-        .drop-zone-icon { font-size: 2.5rem; margin-bottom: 1rem; color: var(--text-secondary); }
-        .drop-zone-text { color: var(--text-secondary); margin-bottom: 1rem; }
-        .drop-zone-subtext { font-size: 0.85rem; color: #6b7280; }
-        input[type="file"] { display: none; }
+        .drop-zone-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+        .drop-zone p { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem; }
+        .drop-zone strong { color: var(--text-primary); }
 
-        input[type="url"], textarea {
+        /* Inputs */
+        input[type="text"], textarea {
             width: 100%;
-            padding: 1rem;
-            background-color: rgba(0,0,0,0.2);
+            background: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
+            padding: 0.75rem 1rem;
             color: var(--text-primary);
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: border-color 0.2s;
+            resize: vertical;
         }
 
-        textarea { min-height: 200px; resize: vertical; }
-
-        input[type="url"]:focus, textarea:focus {
+        input[type="text"]:focus, textarea:focus {
             outline: none;
             border-color: var(--accent-primary);
-            box-shadow: var(--shadow-glow);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
 
-        button.submit-btn {
-            background-color: var(--accent-primary);
+        textarea { min-height: 200px; }
+
+        /* Submit Button */
+        .submit-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--accent-primary);
             color: white;
             border: none;
-            padding: 1rem;
             border-radius: var(--radius-md);
+            font-size: 0.95rem;
             font-weight: 600;
-            font-size: 1rem;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
         }
 
-        button.submit-btn:hover { background-color: var(--accent-hover); transform: translateY(-1px); }
-        button.submit-btn:active { transform: translateY(0); }
-        button.submit-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
-
-        .output-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-        .output-stats { font-size: 0.85rem; color: var(--text-secondary); }
-        .output-actions { display: flex; gap: 0.5rem; }
-
-        .copy-btn {
-            background: var(--surface-hover);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .copy-btn:hover { background: var(--border-color); }
-
-        .download-btn {
-            background: rgba(99,102,241,0.15);
-            border: 1px solid rgba(99,102,241,0.4);
-            color: var(--accent-primary);
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .download-btn:hover { background: rgba(99,102,241,0.25); }
-
-        .editor-wrapper {
-            flex: 1;
-            position: relative;
-            min-height: 400px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            background-color: #0d0f12;
+        .submit-btn:hover:not(:disabled) {
+            background: var(--accent-hover);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-1px);
         }
 
-        pre { margin: 0; height: 100%; overflow: auto; }
-        code { font-family: 'Fira Code', monospace; font-size: 0.9rem; line-height: 1.5; padding: 1.5rem; display: block; color: #d8dee9; white-space: pre-wrap; }
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
+        /* Spinner */
         .spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
             border-top-color: white;
-            animation: spin 0.8s linear infinite;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+            position: absolute;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* Output Panel */
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .output-header h2 { font-size: 1.1rem; font-weight: 600; }
+
+        .output-actions { display: flex; gap: 0.5rem; }
+
+        .copy-btn, .download-btn {
+            padding: 0.4rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--surface-hover);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .copy-btn:hover, .download-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .output-stats {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .editor-wrapper {
+            flex: 1;
+            overflow: auto;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+        }
+
+        .editor-wrapper pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .editor-wrapper code {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 2rem;
             right: 2rem;
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1.5rem;
             border-radius: var(--radius-md);
-            background: var(--surface-hover);
-            color: white;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+            font-size: 0.9rem;
+            font-weight: 500;
             transform: translateY(100px);
             opacity: 0;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 100;
-            border-left: 4px solid var(--accent-primary);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1000;
+            max-width: 350px;
         }
 
-        .toast.show { transform: translateY(0); opacity: 1; }
-        .toast.error { border-left-color: var(--error-color); }
-        .toast.success { border-left-color: var(--success-color); }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { background: #10b981; color: white; }
+        .toast.error { background: #ef4444; color: white; }
+
+        /* File info */
+        .file-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-color);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
 
         footer {
             text-align: center;
-            padding: 1.5rem;
-            border-top: 1px solid var(--border-color);
+            padding: 1rem;
             color: var(--text-secondary);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border-color);
         }
+
         footer a { color: var(--accent-primary); text-decoration: none; }
-        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-
     <header>
-        <h1>MarkItDown</h1>
-        <p>Convert Documents, Media, and Web Pages to pristine Markdown effortlessly.</p>
+        <h1>MarkItDown Web</h1>
+        <p class="subtitle">Convert any file, URL, or text to clean Markdown — powered by <a href="https://github.com/microsoft/markitdown" target="_blank" style="color: var(--accent-primary); text-decoration: none;">Microsoft MarkItDown</a></p>
     </header>
 
     <main>
         <!-- Left Panel: Input -->
         <div class="panel">
-            <h2>Input Source</h2>
-            
             <div class="tabs">
-                <button class="tab-btn active" data-tab="file" id="tab-btn-file">File Upload</button>
-                <button class="tab-btn" data-tab="url" id="tab-btn-url">URL</button>
-                <button class="tab-btn" data-tab="text" id="tab-btn-text">Raw Text</button>
+                <button class="tab-btn active" data-tab="file">File Upload</button>
+                <button class="tab-btn" data-tab="url">URL</button>
+                <button class="tab-btn" data-tab="text">Text / HTML</button>
             </div>
 
             <!-- File Tab -->
             <div class="tab-content active" id="tab-file">
                 <div class="drop-zone" id="dropZone">
                     <div class="drop-zone-icon">&#128196;</div>
-                    <div class="drop-zone-text">Drag &amp; drop your file here, or click to browse</div>
-                    <div class="drop-zone-subtext">Supports PDF, DOCX, XLSX, HTML, Images, Audio, ZIP &mdash; up to 50MB</div>
-                    <input type="file" id="fileInput">
+                    <strong>Drop file here or click to browse</strong>
+                    <p>PDF, DOCX, PPTX, XLSX, HTML, CSV, JSON, images, audio, ZIP and more</p>
+                    <p style="margin-top: 0.5rem; font-size: 0.8rem;">Max size: 50 MB</p>
                 </div>
-                <div id="selectedFileInfo" style="display: none; color: var(--accent-primary); font-weight: 500; text-align: center;"></div>
+                <input type="file" id="fileInput" style="display:none">
+                <div class="file-info" id="selectedFileInfo"></div>
                 <button class="submit-btn" id="btnFile" disabled>
                     <span class="btn-text">Convert File</span>
                     <div class="spinner"></div>
@@ -290,9 +343,9 @@
 
             <!-- URL Tab -->
             <div class="tab-content" id="tab-url">
-                <input type="url" id="urlInput" placeholder="https://example.com/article" autocomplete="off">
+                <input type="text" id="urlInput" placeholder="https://example.com/article">
                 <button class="submit-btn" id="btnUrl">
-                    <span class="btn-text">Extract Markdown</span>
+                    <span class="btn-text">Convert URL</span>
                     <div class="spinner"></div>
                 </button>
             </div>
@@ -332,142 +385,265 @@
         </div>
     </main>
 
-    <footer>
-        Powered by <a href="https://github.com/microsoft/markitdown" target="_blank" rel="noopener">Microsoft MarkItDown</a>
-        &mdash; <a href="https://github.com/BinhG/markitdown-web" target="_blank" rel="noopener">Source on GitHub</a>
-    </footer>
-
     <div class="toast" id="toast"></div>
 
     <script>
-        // Tab Switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
+        // Tab Switching Logic
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
                 btn.classList.add('active');
-                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+                document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
             });
         });
 
-        // Toast
+        // Toast Notification
         const toast = document.getElementById('toast');
         let toastTimeout;
         function showToast(message, type = 'success') {
             toast.textContent = message;
-            toast.className = 'toast show ' + type;
+            toast.className = `toast show ${type}`;
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => toast.classList.remove('show'), 3000);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
-        // Output
+        // Output Handling
         const outputCode = document.getElementById('outputCode');
         const outputStats = document.getElementById('outputStats');
+        const copyBtn = document.getElementById('copyBtn');
+
         let lastMarkdown = '';
+        let lastFilename = 'converted.md';
 
         function setOutput(markdown, lines, chars) {
             if (!markdown) markdown = 'No content extracted.';
             lastMarkdown = markdown;
             outputCode.textContent = markdown;
-            outputStats.textContent = (lines ?? markdown.split('\n').length) + ' lines \u2022 ' + (chars ?? markdown.length).toLocaleString() + ' characters';
+            const lineCount = lines != null ? lines : markdown.split('\n').length;
+            const charCount = chars != null ? chars : markdown.length;
+            outputStats.textContent = `${lineCount} lines \u2022 ${charCount.toLocaleString()} characters`;
         }
 
-        // Copy
-        document.getElementById('copyBtn').addEventListener('click', () => {
+        // ---------------------------------------------------------------
+        // Copy — uses Clipboard API on HTTPS, execCommand fallback on HTTP
+        // ---------------------------------------------------------------
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+            // Fallback for HTTP / non-secure context
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return ok ? Promise.resolve() : Promise.reject(new Error('execCommand returned false'));
+            } catch (e) {
+                document.body.removeChild(ta);
+                return Promise.reject(e);
+            }
+        }
+
+        copyBtn.addEventListener('click', () => {
             const text = outputCode.textContent;
-            if (text && text !== 'Markdown will appear here...') {
-                navigator.clipboard.writeText(text)
-                    .then(() => showToast('Copied to clipboard!'))
-                    .catch(() => showToast('Failed to copy', 'error'));
+            if (!text || text === 'Markdown will appear here...') {
+                showToast('Nothing to copy yet', 'error');
+                return;
+            }
+            copyToClipboard(text)
+                .then(() => showToast('Copied to clipboard!', 'success'))
+                .catch(() => showToast('Copy failed \u2014 try selecting text manually', 'error'));
+        });
+
+        // ---------------------------------------------------------------
+        // Download — append anchor to DOM before click (Firefox requirement)
+        // ---------------------------------------------------------------
+        const downloadBtn = document.getElementById('downloadBtn');
+        downloadBtn.addEventListener('click', () => {
+            if (!lastMarkdown || lastMarkdown === 'Markdown will appear here...') {
+                showToast('Nothing to download yet', 'error');
+                return;
+            }
+            try {
+                const blob = new Blob([lastMarkdown], { type: 'text/markdown;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = lastFilename;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 100);
+                showToast('Downloaded!', 'success');
+            } catch (e) {
+                showToast('Download failed: ' + e.message, 'error');
             }
         });
 
-        // Download
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            if (!lastMarkdown || lastMarkdown === 'Markdown will appear here...') return;
-            const blob = new Blob([lastMarkdown], { type: 'text/markdown;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'converted.md'; a.click();
-            URL.revokeObjectURL(url);
-            showToast('Downloaded!');
-        });
-
-        // Loading
+        // Loading State
         function setLoading(btnId, isLoading) {
             const btn = document.getElementById(btnId);
+            const text = btn.querySelector('.btn-text');
+            const spinner = btn.querySelector('.spinner');
+            
             btn.disabled = isLoading;
-            btn.querySelector('.btn-text').style.opacity = isLoading ? '0' : '1';
-            btn.querySelector('.spinner').style.display = isLoading ? 'block' : 'none';
+            if (isLoading) {
+                spinner.style.display = 'block';
+                text.style.opacity = '0';
+            } else {
+                spinner.style.display = 'none';
+                text.style.opacity = '1';
+            }
         }
 
-        // File
+        // File Drag & Drop
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
+        const btnFile = document.getElementById('btnFile');
+        const selectedFileInfo = document.getElementById('selectedFileInfo');
         let currentFile = null;
 
         dropZone.addEventListener('click', () => fileInput.click());
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-        dropZone.addEventListener('drop', e => {
-            e.preventDefault(); dropZone.classList.remove('dragover');
-            if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
         });
-        fileInput.addEventListener('change', e => { if (e.target.files.length) handleFileSelect(e.target.files[0]); });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                handleFileSelect(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
 
         function handleFileSelect(file) {
             currentFile = file;
-            const info = document.getElementById('selectedFileInfo');
-            info.style.display = 'block';
-            info.textContent = 'Selected: ' + file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
-            document.getElementById('btnFile').disabled = false;
+            selectedFileInfo.style.display = 'block';
+            selectedFileInfo.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            btnFile.disabled = false;
         }
 
-        const API = '/api/convert';
+        // API Calls
+        const API_BASE = '/api/convert';
 
-        // File Convert
-        document.getElementById('btnFile').addEventListener('click', async () => {
+        btnFile.addEventListener('click', async () => {
             if (!currentFile) return;
             setLoading('btnFile', true);
-            const fd = new FormData();
-            fd.append('file', currentFile);
+            
+            const formData = new FormData();
+            formData.append('file', currentFile);
+
             try {
-                const r = await fetch(API + '/file', { method: 'POST', body: fd });
-                const d = await r.json();
-                if (r.ok) { setOutput(d.markdown, d.line_count, d.char_count); showToast('File converted!'); }
-                else showToast(d.error || 'Conversion failed', 'error');
-            } catch (e) { showToast(e.message, 'error'); }
-            finally { setLoading('btnFile', false); }
+                const res = await fetch(`${API_BASE}/file`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    lastFilename = data.filename
+                        ? data.filename.replace(/\.[^.]+$/, '') + '.md'
+                        : 'converted.md';
+                    setOutput(data.markdown, data.line_count, data.char_count);
+                    showToast('File converted successfully!');
+                } else {
+                    showToast(data.error || 'Conversion failed', 'error');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                setLoading('btnFile', false);
+            }
         });
 
-        // URL Convert
-        document.getElementById('btnUrl').addEventListener('click', async () => {
-            const url = document.getElementById('urlInput').value.trim();
+        const btnUrl = document.getElementById('btnUrl');
+        const urlInput = document.getElementById('urlInput');
+
+        btnUrl.addEventListener('click', async () => {
+            const url = urlInput.value.trim();
             if (!url) return;
             setLoading('btnUrl', true);
+
             try {
-                const r = await fetch(API + '/url', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
-                const d = await r.json();
-                if (r.ok) { setOutput(d.markdown, d.line_count, d.char_count); showToast('URL converted!'); }
-                else showToast(d.error || 'Conversion failed', 'error');
-            } catch (e) { showToast(e.message, 'error'); }
-            finally { setLoading('btnUrl', false); }
+                const res = await fetch(`${API_BASE}/url`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    lastFilename = 'converted.md';
+                    setOutput(data.markdown, data.line_count, data.char_count);
+                    showToast('URL converted successfully!');
+                } else {
+                    showToast(data.error || 'Conversion failed', 'error');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                setLoading('btnUrl', false);
+            }
         });
 
-        // Text Convert
-        document.getElementById('btnText').addEventListener('click', async () => {
-            const text = document.getElementById('textInput').value.trim();
+        const btnText = document.getElementById('btnText');
+        const textInput = document.getElementById('textInput');
+
+        btnText.addEventListener('click', async () => {
+            const text = textInput.value.trim();
             if (!text) return;
             setLoading('btnText', true);
+
             const format = document.querySelector('input[name="textFormat"]:checked').value;
+
             try {
-                const r = await fetch(API + '/text', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, format }) });
-                const d = await r.json();
-                if (r.ok) { setOutput(d.markdown, d.line_count, d.char_count); showToast('Text converted!'); }
-                else showToast(d.error || 'Conversion failed', 'error');
-            } catch (e) { showToast(e.message, 'error'); }
-            finally { setLoading('btnText', false); }
+                const res = await fetch(`${API_BASE}/text`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, format })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    lastFilename = 'converted.md';
+                    setOutput(data.markdown, data.line_count, data.char_count);
+                    showToast('Text converted successfully!');
+                } else {
+                    showToast(data.error || 'Conversion failed', 'error');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            } finally {
+                setLoading('btnText', false);
+            }
         });
+
     </script>
 </body>
 </html>
