@@ -2,13 +2,23 @@
 MarkItDown Web — Convert any file or URL to Markdown.
 Backend: Flask + microsoft/markitdown
 Production: Gunicorn
+
+Temp file strategy:
+- Each request gets its own TemporaryDirectory (auto-deleted on context exit)
+- On startup: sweep UPLOAD_FOLDER for leftover files older than MAX_AGE_SECS
+- Background thread sweeps every SWEEP_INTERVAL_SECS
+- /tmp on Linux is cleaned by OS on reboot — extra safety net
 """
 
 import os
+import time
 import uuid
+import shutil
 import logging
 import traceback
 import tempfile
+import threading
+from contextlib import contextmanager
 from pathlib import Path
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -34,11 +44,16 @@ except ImportError:
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
 
+# ---------------------------------------------------------------------------
+# Temp file config
+# ---------------------------------------------------------------------------
 UPLOAD_FOLDER = Path(tempfile.gettempdir()) / "markitdown_uploads"
 UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
-logger.info("Upload folder: %s", UPLOAD_FOLDER)
 
-MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
+MAX_FILE_SIZE = 50 * 1024 * 1024       # 50 MB per upload
+MAX_AGE_SECS = 60 * 15                 # 15 min: sweep orphaned files older than this
+SWEEP_INTERVAL_SECS = 60 * 5          # sweep every 5 min
+
 app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 
 SUPPORTED_EXTENSIONS = {
@@ -52,6 +67,77 @@ SUPPORTED_EXTENSIONS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Temp directory context manager
+# Each request gets an isolated temp dir that is auto-deleted on exit.
+# Works even if markitdown unpacks a ZIP into extra sub-files.
+# ---------------------------------------------------------------------------
+@contextmanager
+def request_tempdir():
+    """
+    Yields a fresh temporary directory Path.
+    The entire directory — and ALL contents — is deleted on exit,
+    regardless of success or exception.
+    """
+    tmp = Path(tempfile.mkdtemp(dir=UPLOAD_FOLDER, prefix="req_"))
+    try:
+        yield tmp
+    finally:
+        try:
+            shutil.rmtree(tmp, ignore_errors=True)
+        except Exception:
+            pass
+
+
+# ---------------------------------------------------------------------------
+# Startup + background sweep: clean orphan files left by crashes / SIGKILL
+# ---------------------------------------------------------------------------
+def sweep_upload_folder(max_age: float = MAX_AGE_SECS) -> int:
+    """
+    Delete sub-directories in UPLOAD_FOLDER older than `max_age` seconds.
+    Returns number of entries removed.
+    """
+    now = time.time()
+    removed = 0
+    try:
+        for entry in UPLOAD_FOLDER.iterdir():
+            try:
+                age = now - entry.stat().st_mtime
+                if age > max_age:
+                    if entry.is_dir():
+                        shutil.rmtree(entry, ignore_errors=True)
+                    else:
+                        entry.unlink(missing_ok=True)
+                    removed += 1
+                    logger.info("Swept orphan: %s (age=%.0fs)", entry.name, age)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    return removed
+
+
+def _background_sweeper():
+    """Daemon thread: sweeps temp folder every SWEEP_INTERVAL_SECS."""
+    while True:
+        time.sleep(SWEEP_INTERVAL_SECS)
+        removed = sweep_upload_folder()
+        if removed:
+            logger.info("Background sweep: removed %d orphan(s)", removed)
+
+
+# Run startup sweep immediately, then launch daemon
+_startup_removed = sweep_upload_folder(max_age=0)  # age=0 removes ALL leftover dirs
+logger.info("Startup sweep: removed %d orphan(s) from previous session", _startup_removed)
+
+_sweeper_thread = threading.Thread(target=_background_sweeper, daemon=True, name="TempSweeper")
+_sweeper_thread.start()
+logger.info("Background sweeper started (interval=%ds, max_age=%ds)", SWEEP_INTERVAL_SECS, MAX_AGE_SECS)
+
+
+# ---------------------------------------------------------------------------
+# Converter helper
+# ---------------------------------------------------------------------------
 def get_md_converter():
     if MarkItDown is None:
         return None, "markitdown not installed. Run: pip install 'markitdown[all]'"
@@ -63,6 +149,10 @@ def get_md_converter():
         return None, str(e)
 
 
+# ---------------------------------------------------------------------------
+# Routes
+# ---------------------------------------------------------------------------
+
 @app.route("/")
 def index():
     return send_from_directory("static", "index.html")
@@ -71,12 +161,18 @@ def index():
 @app.route("/api/health")
 def health():
     md, err = get_md_converter()
+    try:
+        tmp_entries = sum(1 for _ in UPLOAD_FOLDER.iterdir())
+    except Exception:
+        tmp_entries = -1
+
     return jsonify({
         "status": "ok" if md else "degraded",
         "markitdown_available": md is not None,
         "error": err,
         "supported_extensions": sorted(SUPPORTED_EXTENSIONS),
         "upload_folder": str(UPLOAD_FOLDER),
+        "tmp_entries": tmp_entries,
         "max_file_size_mb": MAX_FILE_SIZE // (1024 * 1024),
     })
 
@@ -94,23 +190,19 @@ def convert_file():
     md, err = get_md_converter()
     if md is None:
         return jsonify({"error": err}), 503
-    safe_name = secure_filename(file.filename)
-    tmp_path = UPLOAD_FOLDER / f"{uuid.uuid4().hex}_{safe_name}"
     try:
-        file.save(str(tmp_path))
-        logger.info("Converting file: %s (%d bytes)", file.filename, tmp_path.stat().st_size)
-        result = md.convert(str(tmp_path))
-        content = result.text_content or ""
-        logger.info("File conversion OK: %d chars", len(content))
-        return jsonify({"success": True, "filename": file.filename, "markdown": content, "char_count": len(content), "line_count": content.count("\n")})
+        with request_tempdir() as tmpdir:
+            safe_name = secure_filename(file.filename) or f"upload{ext}"
+            tmp_path = tmpdir / safe_name
+            file.save(str(tmp_path))
+            logger.info("Converting file: %s (%d bytes)", file.filename, tmp_path.stat().st_size)
+            result = md.convert(str(tmp_path))
+            content = result.text_content or ""
+            logger.info("File conversion OK: %d chars", len(content))
+            return jsonify({"success": True, "filename": file.filename, "markdown": content, "char_count": len(content), "line_count": content.count("\n")})
     except Exception as e:
         logger.error("File conversion error for %s:\n%s", file.filename, traceback.format_exc())
         return jsonify({"error": str(e)}), 500
-    finally:
-        try:
-            tmp_path.unlink(missing_ok=True)
-        except Exception:
-            pass
 
 
 @app.route("/api/convert/url", methods=["POST"])
@@ -147,23 +239,23 @@ def convert_text():
     if md is None:
         return jsonify({"error": err}), 503
     ext = ".html" if fmt == "html" else ".txt"
-    tmp_path = UPLOAD_FOLDER / f"{uuid.uuid4().hex}{ext}"
     try:
-        tmp_path.write_text(text, encoding="utf-8")
-        logger.info("Converting text (%s, %d chars)", fmt, len(text))
-        result = md.convert(str(tmp_path))
-        content = result.text_content or ""
-        logger.info("Text conversion OK: %d chars out", len(content))
-        return jsonify({"success": True, "markdown": content, "char_count": len(content), "line_count": content.count("\n")})
+        with request_tempdir() as tmpdir:
+            tmp_path = tmpdir / f"input{ext}"
+            tmp_path.write_text(text, encoding="utf-8")
+            logger.info("Converting text (%s, %d chars)", fmt, len(text))
+            result = md.convert(str(tmp_path))
+            content = result.text_content or ""
+            logger.info("Text conversion OK: %d chars out", len(content))
+            return jsonify({"success": True, "markdown": content, "char_count": len(content), "line_count": content.count("\n")})
     except Exception as e:
         logger.error("Text conversion error (fmt=%s, len=%d):\n%s", fmt, len(text), traceback.format_exc())
         return jsonify({"error": str(e)}), 500
-    finally:
-        try:
-            tmp_path.unlink(missing_ok=True)
-        except Exception:
-            pass
 
+
+# ---------------------------------------------------------------------------
+# Error handlers
+# ---------------------------------------------------------------------------
 
 @app.errorhandler(413)
 def request_too_large(e):
@@ -175,6 +267,10 @@ def internal_error(e):
     logger.error("Unhandled 500 error: %s", traceback.format_exc())
     return jsonify({"error": "Internal server error"}), 500
 
+
+# ---------------------------------------------------------------------------
+# Entrypoint (dev only — use gunicorn in prod)
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5050))
